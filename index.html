@@ -116,6 +116,7 @@
       $(document.body).css({ 'font-family': defaultFontData.fontFamilyDefault.toString() })
 
       // gallery of font family
+      $('#ui_family_refs').html('')
       defaultFontData.fontFamily.forEach(font => {
         $('#ui_family_refs').append(UI_FontFamily(font))
       })
