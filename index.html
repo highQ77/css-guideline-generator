@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Speedup</title>
+  <link rel="stylesheet" href="./css/normalize.css">
+  <link rel="stylesheet" href="./css/su-layout.css">
+  <style>
+    button {
+      cursor: pointer;
+    }
+
+    .textarea {
+      padding: 5px;
+      width: 100%;
+      min-height: 15em;
+    }
+
+    .title {
+      color: white;
+      padding: 0 4px;
+      background-color: black;
+    }
+
+    .title-caption {
+      font-size: 12px;
+      font-weight: lighter;
+    }
+
+    .w-100 {
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="su-row su-row-bound">
+      <div style="background-color: white; margin:40px 0px;">
+        <h1>SpeedUp Design Guideline Generator</h1>
+        <h2><span style="color:rgb(222, 49, 99)">V</span>isual <span style="color:rgba(255, 127, 80)">D</span>esign
+          <span style="color:rgb(255, 191, 0)">S</span>ystem
+        </h2>
+        <button onclick="demo()" style="margin: 8px 0;">Demo Page</button>
+        <button onclick="saveCSS()" style="margin: 8px 0;">One-Click-CSS-Generation</button>
+        <button onclick="$('#loadProjectFile').click()" style="margin: 8px 0;">Load Project</button>
+        <input style="display: none;" id="loadProjectFile" onchange="loadProject(event)" type="file" />
+        <button onclick="saveProject()" style="margin: 8px 0;">Save Project</button>
+      </div>
+    </div>
+  </header>
+  <main class="su-row su-row-bound">
+    <div style="padding: 8px;">
+      <hr>
+      <div>
+        <h3 class="title">padding & margin <span class="title-caption">the padding and margin of block</span></h3>
+        <h4><input id="ui_spacing" type="text" class="w-100" /></h4>
+      </div>
+      <div>
+        <h3 class="title">border & ouline <span class="title-caption">the edge width of block</span></h3>
+        <h4><input id="ui_border" type="text" class="w-100" /></h4>
+      </div>
+      <div>
+        <h3 class="title">color <span class="title-caption">the color palette of text and background</span></h3>
+        <h4><button onclick="UI_AppendColor('custom','black')">+ Add New Color</button></h4>
+        <div id="ui_colors"></div>
+      </div>
+      <div>
+        <h3 class="title">font <span class="title-caption">font-family, font-weight, font-size,
+            etc...</span></h3>
+        <h4>Font Heading / <span style="font-size: 12px;">please check the heading size from H1 to H6</span>
+          <input id="ui_heading" type="text" class="w-100" />
+        </h4>
+        <h4>Font Custom Size / <span style="font-size: 12px;">please check the custom size of body text</span>
+          <input id="ui_custom" type="text" class="w-100" />
+        </h4>
+        <h4>Font-Family / <span style="font-size: 12px;">please click the font family bellow</span>
+          <input id="ui_family" type="text" class="w-100" />
+        </h4>
+        <div id="ui_family_refs" class="su-row">
+        </div>
+        <hr>
+      </div>
+    </div>
+  </main>
+  <script src="./js/jquery-3.7.1.js"></script>
+  <script>
+
+    // [ Initial Settings ] ===============================================================
+
+    $(init)
+
+    function init() {
+
+      // spacing
+      $('#ui_spacing').val(defaultSpacing.toString())
+
+      // border init
+      $('#ui_border').val(defaultBorderWidth.toString())
+
+      // color init
+      $('#ui_colors').html('')
+      Object.keys(defaultColorKV).forEach(k => {
+        UI_AppendColor(k, defaultColorKV[k]);
+      })
+
+      // font headings
+      $('#ui_heading').val(defaultFontData.heading6Size.toString())
+
+      // font custom text size
+      $('#ui_custom').val(defaultFontData.customSize.toString())
+
+      // font family default init
+      $('#ui_family').val(defaultFontData.fontFamilyDefault.toString())
+      $(document.body).css({ 'font-family': defaultFontData.fontFamilyDefault.toString() })
+
+      // gallery of font family
+      defaultFontData.fontFamily.forEach(font => {
+        $('#ui_family_refs').append(UI_FontFamily(font))
+      })
+
+    }
+
+    // settings by user
+    function updateSetting() {
+      defaultSpacing = $('#ui_spacing').val().split(',').map(i => parseFloat(i))
+      defaultBorderWidth = $('#ui_border').val().split(',').map(i => parseFloat(i))
+      defaultColorKV = {}
+      $('.cWrapper').each(function () {
+        var $this = $(this)
+        defaultColorKV[$this.find('.cName').val()] = $this.find('.cVal').val()
+      })
+      defaultColorK = Object.keys(defaultColorKV);
+      defaultFontData.heading6Size = $("#ui_heading").val().split(',').map(i => parseFloat(i))
+      defaultFontData.customSize = $("#ui_custom").val().split(',').map(i => parseFloat(i))
+      defaultFontData.fontFamilyDefault = $("#ui_family").val().split(',')
+    }
+
+    // [ Spacing Settings ] ===============================================================
+    var defaultSpacing = [0, 1, 2, 3, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80]
+
+    // [ Border Settings ] ===============================================================
+    var defaultBorderWidth = [0, 1, 2, 3, 4, 8]
+
+    // [ Color Settings ] ===============================================================
+    var defaultColorKV = {
+      "primary1": "rgba(222, 49, 99, 1)",
+      "primary2": "rgba(255, 127, 80, 1)",
+      "primary3": "rgba(255, 191, 0, 1)",
+      "secondary1": "rgba(223, 255, 0, 1)",
+      "secondary2": "rgba(159, 226, 191, 1)",
+      "secondary3": "rgba(64, 224, 208, 1)",
+      "other1": "rgba(100, 149, 237, 1)",
+      "other2": "rgba(204, 204, 255, 1)"
+    }
+
+    var defaultColorK = Object.keys(defaultColorKV)
+
+    function UI_ColorCustomHTML(cName, cVal) {
+      return `
+        <div class="cWrapper">
+          <span style="padding:3px 12px; background-color:${cVal}"></span>
+          <input class="cName" type="text" value="${cName}">
+          <input class="cVal" type="text" value="${cVal}" onkeyup="$(this.parentElement).find('span').css({'background-color':this.value})">
+          <button onclick="this.parentElement.remove()">- Remove Color</button>
+          <hr>
+        </div>
+      `
+    }
+
+    function UI_AppendColor(cName, cVal) {
+      $('#ui_colors').append(UI_ColorCustomHTML(cName, cVal))
+    }
+
+    // [ Font Settings ] ===============================================================
+
+    var defaultFontData = {
+      // h1 ~ h6, the unit size of heading is pixel(px)
+      "heading6Size": [37, 28, 22, 19, 16, 13],
+      // custom size is pixel(px) too
+      "customSize": [18, 16, 14, 12, 11],
+      "fontWeight": [
+        "lighter",
+        "bolder"
+      ],
+      "fontFamilyDefault": "system-ui",
+      // all vscode font families
+      "fontFamily": [
+        "Courier New",
+        "Courier",
+        "monospace",
+        "Franklin Gothic Medium",
+        "Arial Narrow",
+        "Arial",
+        "sans-serif",
+        "Gill Sans",
+        "Gill Sans MT",
+        "Calibri",
+        "Trebuchet MS",
+        "Lucida Sans",
+        "Lucida Sans Regular",
+        "Lucida Grande",
+        "Lucida Sans Unicode",
+        "Geneva",
+        "Verdana",
+        "Segoe UI",
+        "Tahoma",
+        "Times New Roman",
+        "Times",
+        "serif",
+        "Helvetica",
+        "Cambria",
+        "Cochin",
+        "Georgia",
+        "Impact",
+        "Haettenschweiler",
+        "Arial Narrow Bold",
+        "cursive",
+        "fantasy",
+        "system-ui",
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Roboto",
+        "Oxygen",
+        "Ubuntu",
+        "Cantarell",
+        "Open Sans",
+        "Helvetica Neue"
+      ]
+    }
+
+    function UI_FontFamily(ff) {
+      return `<div onclick="$('#ui_family').val($(this).text());$(document.body).css({ 'font-family': $(this).text() })" class="su-col-sm-4 su-col-md-4 su-col-lg-4" style="font-family:${ff}; border-bottom:1px solid gray; margin-bottom:4px; cursor: pointer;">${ff}</div>`;
+    }
+
+    // [ Demo Generation ] ===============================================================
+
+    var cssStr = ''
+    var htmlStr = ''
+
+    function demo() {
+      updateSetting()
+      genCSS()
+      genHTML()
+      var win = window.open('', '_blank')
+      win.document.write(htmlStr);
+      win.document.write(`<style>${cssStr}</style>`);
+    }
+
+    function genCSS() {
+      cssStr = ''
+      rootCSS()
+      fontCSS()
+      borderCSS()
+      colorsCSS()
+      spacingCSS()
+      opacityCSS()
+    }
+
+    function genHTML() {
+      htmlStr = ''
+      fontHTML()
+      borderHTML()
+      colorsHTML()
+      spacingHTML()
+      opacityHTML()
+      buttonHTML()
+    }
+
+
+    // [ Save Project ] ===============================================================
+    function saveProject() {
+      updateSetting()
+      var save = {
+        defaultSpacing,
+        defaultBorderWidth,
+        defaultColorKV,
+        defaultFontData
+      }
+      var filename = 'guideline.json'
+      const link = document.createElement('a');
+      const file = new Blob([JSON.stringify(save)], { type: 'text/plain' });
+      link.setAttribute('href', URL.createObjectURL(file));
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // [ Load Project ] ===============================================================
+    function loadProject(event) {
+      const { target } = event;
+      const file = target.files[0];
+      if (file) {
+        var reader = new FileReader();
+        reader.onload = () => {
+          var R = JSON.parse(reader.result)
+          defaultSpacing = R.defaultSpacing
+          defaultBorderWidth = R.defaultBorderWidth
+          defaultColorKV = R.defaultColorKV
+          defaultFontData = R.defaultFontData
+          init()
+        };
+        reader.readAsText(file);
+        file.value = null;
+      }
+    }
+
+    // [ Save CSS ] ===============================================================
+    function saveCSS() {
+      genCSS()
+      var filename = 'guideline.css'
+      const link = document.createElement('a');
+      const file = new Blob([cssStr], { type: 'text/plain' });
+      link.setAttribute('href', URL.createObjectURL(file));
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // ===============================================================
+    // ===============================================================
+    // ===============================================================
+    // ===============================================================
+    // ===============================================================
+
+    function rootCSS() {
+      cssStr += ':root {\r\n'
+      defaultColorK.forEach(key => {
+        cssStr += `--su-color-${key}: ${defaultColorKV[key]};\r\n`
+      })
+      cssStr += '}\r\n'
+    }
+
+    function fontCSS() {
+      // defaultFontData.fontFamilyDefault
+      cssStr += `body {font-family: '${defaultFontData.fontFamilyDefault}';}\r\n`
+
+      // defaultFontData.fontFamily list
+      defaultFontData.fontFamily.forEach((f, index) => {
+        cssStr += `.su-ff-${f.toLowerCase().split(' ').join('-')} {font-family: '${f}';}\r\n`
+      })
+
+      // defaultFontData.heading6Size : title size of text - h1 ~ h6
+      defaultFontData.heading6Size.forEach((size, index) => {
+        cssStr += `h${index + 1} {font-size: ${size}px;}\r\n`
+      })
+      // defaultFontData.customSize : custom size define
+      defaultFontData.customSize.forEach(size => {
+        cssStr += `.su-fs-${size} {font-size: ${size}px;}\r\n`
+      })
+      // defaultFontData.fontWeight : custom font weight
+      defaultFontData.fontWeight.forEach(w => {
+        cssStr += `.su-fw-${w} {font-weight: ${w};}\r\n`
+      })
+    }
+
+    function borderCSS() {
+
+      // border
+      defaultBorderWidth.forEach(width => {
+        cssStr += `.su-bd-${width} {border: ${width}px solid black;}\r\n`
+      })
+
+      defaultBorderWidth.forEach(width => {
+        cssStr += `.su-bdl-${width} {border-left: ${width}px solid black;}\r\n`
+      })
+
+      defaultBorderWidth.forEach(width => {
+        cssStr += `.su-bdt-${width} {border-top: ${width}px solid black;}\r\n`
+      })
+
+      defaultBorderWidth.forEach(width => {
+        cssStr += `.su-bdr-${width} {border-right: ${width}px solid black;}\r\n`
+      })
+
+      defaultBorderWidth.forEach(width => {
+        cssStr += `.su-bdb-${width} {border-bottom: ${width}px solid black;}\r\n`
+      })
+
+      defaultBorderWidth.forEach(width => {
+        cssStr += `.su-bdx-${width} {border-left: ${width}px solid black;border-right: ${width}px solid black;}\r\n`
+      })
+
+      defaultBorderWidth.forEach(width => {
+        cssStr += `.su-bdy-${width} {border-top: ${width}px solid black;border-bottom: ${width}px solid black;}\r\n`
+      })
+
+      Array(5).fill(0).forEach((_, index) => {
+        cssStr += `.su-bd-radius-${(index + 1) * 2} {border-radius: ${(index + 1) * 2}px;}\r\n`
+      })
+
+      // outline
+      defaultBorderWidth.forEach(width => {
+        cssStr += `.su-ol-${width} {outline: ${width}px solid black;}\r\n`
+      })
+    }
+
+    function colorsCSS() {
+
+      // .su-text-shadow-[color name]
+      defaultColorK.forEach(key => {
+        cssStr += `.su-text-shadow-${key} {text-shadow:0px 0px 1px var(--su-color-${key});}\r\n`
+      })
+
+      // text-shadow
+      Array(11).fill(0).forEach((_, index, arr) => {
+        let cv = 20 * index / (arr.length - 1)
+        cssStr += `.su-text-shadow-${index * 10} {text-shadow:0px 0px ${cv}px black;}\r\n`
+      })
+
+      // .su-box-shadow-[color name]
+      defaultColorK.forEach(key => {
+        cssStr += `.su-box-shadow-${key} {box-shadow:0px 0px 10px var(--su-color-${key});}\r\n`
+      })
+
+      // box-shadow
+      Array(11).fill(0).forEach((_, index, arr) => {
+        let cv = 20 * index / (arr.length - 1)
+        cssStr += `.su-box-shadow-${index * 10} {box-shadow:0px 0px ${cv}px black;}\r\n`
+      })
+
+      // .su-box-shadow-[color name]
+      defaultColorK.forEach(key => {
+        cssStr += `.su-box-shadow-inset-${key} {box-shadow:inset 0px 0px 10px var(--su-color-${key});}\r\n`
+      })
+
+      // box-shadow-inset
+      Array(11).fill(0).forEach((_, index, arr) => {
+        let cv = 20 * index / (arr.length - 1)
+        cssStr += `.su-box-shadow-inset-${index * 10} {box-shadow:inset 0px 0px ${cv}px black;}\r\n`
+      })
+
+
+      // .su-text-[color name]
+      defaultColorK.forEach(key => {
+        cssStr += `.su-text-${key} {color:var(--su-color-${key});}\r\n`
+      })
+
+      // .su-text-0, .su-text-10, .su-text-20 ~ .su-text-100
+      Array(11).fill(0).forEach((_, index, arr) => {
+        let cv = 255 * index / (arr.length - 1)
+        cssStr += `.su-text-${index * 10} {color:rgba(${cv},${cv},${cv},1);}\r\n`
+      })
+
+      // .su-bg-[color name]
+      defaultColorK.forEach(key => {
+        cssStr += `.su-bg-${key} {background-color:var(--su-color-${key});}\r\n`
+      })
+
+      // .su-bg-0, .su-bg-10, .su-bg-20 ~ .su-bg-100
+      Array(11).fill(0).forEach((_, index, arr) => {
+        let cv = 255 * index / (arr.length - 1)
+        cssStr += `.su-bg-${index * 10} {background-color:rgba(${cv},${cv},${cv},1);}\r\n`
+      })
+
+      // border - .su-bd-[color name]
+      defaultColorK.forEach(key => {
+        cssStr += `.su-bd-${key} {border-color:var(--su-color-${key});}\r\n`
+      })
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        let cv = 255 * index / (arr.length - 1)
+        cssStr += `.su-bd-c${index * 10} {border-color:rgba(${cv},${cv},${cv},1);}\r\n`
+      })
+
+      // outline - .su-ol-[color name]
+      defaultColorK.forEach(key => {
+        cssStr += `.su-ol-${key} {outline-color:var(--su-color-${key});}\r\n`
+      })
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        let cv = 255 * index / (arr.length - 1)
+        cssStr += `.su-ol-c${index * 10} {outline-color:rgba(${cv},${cv},${cv},1);}\r\n`
+      })
+    }
+
+    function spacingCSS() {
+      // padding
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-p-${item}{padding:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-pl-${item}{padding-left:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-pt-${item}{padding-top:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-pr-${item}{padding-right:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-pb-${item}{padding-bottom:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-px-${item}{padding-left:${item}px;padding-right:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-py-${item}{padding-top:${item}px;padding-bottom:${item}px;}\r\n`;
+      })
+
+      // margin
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-m-${item}{margin:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-ml-${item}{margin-left:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-mt-${item}{margin-top:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-mr-${item}{margin-right:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-mb-${item}{margin-bottom:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-mx-${item}{margin-left:${item}px;margin-right:${item}px;}\r\n`;
+      })
+      defaultSpacing.forEach(item => {
+        cssStr += `.su-my-${item}{margin-top:${item}px;margin-bottom:${item}px;}\r\n`;
+      })
+    }
+
+    function opacityCSS() {
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        let cv = 100 * index / (arr.length - 1)
+        cssStr += `.su-opacity-${index * 10} {opacity:${cv}%;}\r\n`
+      })
+
+    }
+
+
+
+    function fontHTML() {
+      htmlStr += `<h3 class='su-bg-0 su-text-100 su-p-8'>Font Definition - Family & Size & Weight</h3><hr>`
+      htmlStr += `<div><span style="font-family: '${defaultFontData.fontFamilyDefault}'">Your Default Font Family is "${defaultFontData.fontFamilyDefault}"</span></div><hr>`
+
+      defaultFontData.fontFamily.forEach((f, index) => {
+        htmlStr += `<div>${index + 1}:<span class="su-pl-8 su-ff-${f.toLowerCase().split(' ').join('-')}">${f} (.su-ff-${f.toLowerCase().split(' ').join('-')})</span></div><hr>`
+      })
+
+      defaultFontData.heading6Size.forEach((size, index) => {
+        htmlStr += `<h${index + 1}>H${index + 1} - ${size}px</h${index + 1}><hr>`
+      })
+
+      defaultFontData.customSize.forEach(size => {
+        htmlStr += `<div class="su-fs-${size}">.su-fs-${size}</div><hr>`
+      })
+
+      defaultFontData.fontWeight.forEach(w => {
+        htmlStr += `<div class="su-fw-${w}">.su-fw-${w}</div><hr>`
+      })
+    }
+
+    function borderHTML() {
+
+      htmlStr += `<h3 class='su-bg-0 su-text-100 su-p-8'>Border Definition - Border & Outline</h3><hr>`
+
+      // border
+      defaultBorderWidth.forEach(width => {
+        htmlStr += `<div class="su-bd-${width}">.su-bd-${width}  (bd = bd | bdl | bdt | bdr | bdb | bdx | bdy)</div><hr>`
+      })
+
+      // outline
+      defaultBorderWidth.forEach(width => {
+        htmlStr += `<div class="su-ol-${width}">.su-ol-${width}</div><hr>`
+      })
+
+      Array(5).fill(0).forEach((_, index) => {
+        htmlStr += `<div class="su-bd-1 su-bd-radius-${(index + 1) * 2}">.su-bd-radius-${(index + 1) * 2}</div><hr>`
+      })
+    }
+
+    function colorsHTML() {
+
+      htmlStr += `<h3 class='su-bg-0 su-text-100 su-p-8'>Colors Definition - Text & Background Colors</h3><hr>`
+
+      // text-shadow
+      defaultColorK.forEach(key => {
+        const cls = `su-text-shadow-${key}`
+        htmlStr += `<div class='${cls}'>.${cls}</div><hr>`
+      })
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        const cls = `su-text-shadow-${index * 10}`
+        htmlStr += `<div class='${cls}'>.${cls}</div><hr>`
+      })
+
+
+      // box-shadow
+      defaultColorK.forEach(key => {
+        const cls = `su-box-shadow-${key}`
+        htmlStr += `<div class='${cls}'>.${cls}</div><hr>`
+      })
+      Array(11).fill(0).forEach((_, index, arr) => {
+        const cls = `su-box-shadow-${index * 10}`
+        htmlStr += `<div class='${cls}'>.${cls}</div><hr>`
+      })
+      defaultColorK.forEach(key => {
+        const cls = `su-box-shadow-inset-${key}`
+        htmlStr += `<div class='${cls}'>.${cls}</div><hr>`
+      })
+      Array(11).fill(0).forEach((_, index, arr) => {
+        const cls = `su-box-shadow-inset-${index * 10}`
+        htmlStr += `<div class='${cls}'>.${cls}</div><hr>`
+      })
+
+
+      defaultColorK.forEach(key => {
+        const cls = `su-text-${key}`
+        htmlStr += `<div class='${cls}'>.${cls}</div><hr>`
+      })
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        const cls = `su-text-${index * 10}`
+        htmlStr += `<div class='${cls}' style='text-shadow:black 1px 0 1px;'>.${cls}</div><hr>`
+      })
+
+      defaultColorK.forEach(key => {
+        const cls = `su-bg-${key}`
+        htmlStr += `<div class='${cls}'>.${cls}</div><hr>`
+      })
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        const cls = `su-bg-${index * 10}`
+        htmlStr += `<div class='${cls}' style='text-shadow:white 1px 0 1px;'>.${cls}</div><hr>`
+      })
+
+      // border
+      defaultColorK.forEach(key => {
+        htmlStr += `<div class="su-bd-${defaultBorderWidth[defaultBorderWidth.length - 1]} su-bd-${key}">.su-bd-${defaultBorderWidth[defaultBorderWidth.length - 1]} .su-bd-${key}</div><hr>`
+      })
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        const cls = `su-bd-c${index * 10}`
+        htmlStr += `<div class='su-bd-${defaultBorderWidth[defaultBorderWidth.length - 1]} ${cls}' style='text-shadow:white 1px 0 1px;'>.su-bd-${defaultBorderWidth[defaultBorderWidth.length - 1]} .${cls}</div><hr>`
+      })
+
+      // outline
+      defaultColorK.forEach(key => {
+        htmlStr += `<div class="su-ol-${defaultBorderWidth[defaultBorderWidth.length - 1]} su-ol-${key}">.su-ol-${defaultBorderWidth[defaultBorderWidth.length - 1]} .su-ol-${key}</div><hr>`
+      })
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        const cls = `su-ol-c${index * 10}`
+        htmlStr += `<div class='su-ol-${defaultBorderWidth[defaultBorderWidth.length - 1]} ${cls}' style='text-shadow:white 1px 0 1px;'>.su-ol-${defaultBorderWidth[defaultBorderWidth.length - 1]} .${cls}</div><hr>`
+      })
+    }
+
+    function spacingHTML() {
+
+      htmlStr += `<h3 class='su-bg-0 su-text-100 su-p-8'>Spacing Definition - Margin & Padding</h3><hr>`
+
+      defaultSpacing.forEach(item => {
+        htmlStr += `<div class="su-m-${item} su-bg-80"><div>.su-m-${item} (m = m | ml | mt | mr | mb | mx | my)</div></div><hr>`
+      })
+
+      defaultSpacing.forEach(item => {
+        htmlStr += `<div class="su-p-${item} su-bg-80"><div class="su-bg-70">.su-p-${item} (p = p | pl | pt | pr | pb | px | py)</div></div><hr>`
+      })
+    }
+
+    function opacityHTML() {
+
+      htmlStr += `<h3 class='su-bg-0 su-text-100 su-p-8'>Opacity Definition</h3><hr>`
+
+      Array(11).fill(0).forEach((_, index, arr) => {
+        const cls = `su-opacity-${index * 10}`
+        htmlStr += `<div class='${cls}'>.su-opacity-${index * 10}</div><hr>`
+      })
+    }
+
+    function buttonHTML() {
+
+      htmlStr += `<h3 class='su-bg-0 su-text-100 su-p-8'>Button Definition</h3><hr>`
+
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-1 su-bd-c100 su-text-100 su-bd-radius-4 su-bg-${key} su-bd-${key} su-box-shadow-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-0 su-bd-c100 su-text-100 su-bd-radius-4 su-bg-${key} su-bd-${key} su-box-shadow-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-0 su-bd-c100 su-text-0 su-bd-radius-4 su-bg-${key} su-bd-${key} su-box-shadow-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-0 su-bd-c100 su-text-${key} su-bd-radius-4 su-bg-100 su-bd-${key} su-box-shadow-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-0 su-bd-c100 su-text-0 su-bd-radius-4 su-bg-100 su-bd-${key} su-box-shadow-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-1 su-bd-${key} su-text-${key} su-bd-radius-4 su-bg-100 su-bd-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-1 su-bd-${key} su-text-0 su-bd-radius-4 su-bg-100 su-bd-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+    }
+
+  </script>
+</body>
+
+</html>
