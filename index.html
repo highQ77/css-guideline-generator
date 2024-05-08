@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Speedup</title>
+  <title>SpeedUp</title>
   <link rel="stylesheet" href="./css/normalize.css">
   <link rel="stylesheet" href="./css/su-layout.css">
   <style>
@@ -38,7 +38,7 @@
   <header>
     <div class="su-row su-row-bound">
       <div style="background-color: white; margin:40px 0px;">
-        <h1>SpeedUp Design Guideline Generator</h1>
+        <h1>SpeedUp Design Guideline Generator <span style="font-size: 16px;">v1.0</span></h1>
         <h2><span style="color:rgb(222, 49, 99)">V</span>isual <span style="color:rgba(255, 127, 80)">D</span>esign
           <span style="color:rgb(255, 191, 0)">S</span>ystem
         </h2>
@@ -712,6 +712,16 @@
       htmlStr += '<hr>'
       defaultColorK.forEach(key => {
         const cls = `su-p-8 su-bd-1 su-bd-${key} su-text-0 su-bd-radius-4 su-bg-100 su-bd-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-1 su-bdb-4 su-bd-${key} su-text-${key} su-bd-radius-4 su-bg-100 su-bd-${key}`
+        htmlStr += `<button class='${cls}'>button</button>&nbsp;`
+      })
+      htmlStr += '<hr>'
+      defaultColorK.forEach(key => {
+        const cls = `su-p-8 su-bd-1 su-bdb-4 su-bd-${key} su-text-0 su-bd-radius-4 su-bg-100 su-bd-${key}`
         htmlStr += `<button class='${cls}'>button</button>&nbsp;`
       })
       htmlStr += '<hr>'
