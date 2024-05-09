@@ -282,7 +282,7 @@
         defaultColorKV,
         defaultFontData
       }
-      var filename = 'guideline.json'
+      var filename = 'su-guideline.json'
       const link = document.createElement('a');
       const file = new Blob([JSON.stringify(save)], { type: 'text/plain' });
       link.setAttribute('href', URL.createObjectURL(file));
@@ -314,7 +314,7 @@
     // [ Save CSS ] ===============================================================
     function saveCSS() {
       genCSS()
-      var filename = 'guideline.css'
+      var filename = 'su-guideline.css'
       const link = document.createElement('a');
       const file = new Blob([cssStr], { type: 'text/plain' });
       link.setAttribute('href', URL.createObjectURL(file));
